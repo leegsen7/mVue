@@ -1,3 +1,6 @@
+import Observe from './observer'
+import Compile from './compile'
+
 function Vue(options){
 	this.$options = options;
 	this.$data = this.$options.data();
@@ -25,3 +28,7 @@ Vue.prototype.$proxy = function() {
         this[key] = this.$options.methods[key]
     })
 }
+
+window.Vue = Vue
+
+export default Vue

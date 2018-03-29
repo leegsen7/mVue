@@ -6,9 +6,9 @@
  * @param  {[type]}                 data [description]
  * @return {[type]}                      [description]
  */
-function getExpressionVal(str,data){
+export default function getExpressionVal(str,data){
     var reg = /\<|\=\=|\>|\+|\-|\*|\//g,
-        reg1 = /^-?[1-9]\d*|\'?\'|\"?\"$/;
+        reg1 = /^-?[1-9]\d*|\'?\'|\"?\"$/,
         code = '',
         cursor = 0,
         match = '';

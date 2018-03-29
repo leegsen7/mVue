@@ -1,3 +1,6 @@
+import Watcher from './Watcher'
+import getExpressionVal from './utils/getExpressionVal'
+
 // 插值{{}}正则
 const interpolationReg = /\{\{(.*)\}\}/
 
@@ -176,3 +179,5 @@ var compileUtil = {
     }
 }
 
+
+export default Compile

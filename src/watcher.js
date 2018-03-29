@@ -1,4 +1,5 @@
-
+import Dep from './Dep'
+import getExpressionVal from './utils/getExpressionVal'
 /**
  * [Watcher description]
  * @Author leegsen
@@ -50,3 +51,5 @@ Watcher.prototype = {
 		return getExpressionVal(exp,data);
 	}
 }
+
+export default Watcher
