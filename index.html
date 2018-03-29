@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<style type="text/css">
+		li + li {
+			margin-top: 15px;
+		}
+	</style>
+</head>
+<body>
+	<div id="main">
+		<ul>
+			<!-- <li>
+				<div><input type="text" v-model="inputVal_1"></div>
+				<div>这是双向数据绑定:<span v-text="inputVal_1"></span></div>
+			</li>
+			<li>
+				<div>
+					名字: <input type="text" v-model="person.name"><br>
+					年龄: <input type="text" v-model="person.age">
+				</div>
+				<div>我的名字是<span v-text="person.name"></span>,今年<span v-text="person.age"></span>岁</div>
+				<button @click="switchClick">替换</button>
+			</li> -->
+			<li>
+				<button @click="toggleClick">点击{{flag ? '隐藏' : '显示'}}</button>
+				<!-- <div v-show="flag && showDiv">我显示了</div> -->
+			</li>
+		</ul>
+	</div>
+	<script src="./src/utils/getExpressionVal.js"></script>
+	<script src="./src/observer.js"></script>
+	<script src="./src/watcher.js"></script>
+	<script src="./src/compile.js"></script>
+	<script src="./src/mvvm.js"></script>
+	<script>
+	var app = new Vue({
+		el:'#main',
+		data() {
+			return {
+				inputVal_1: 'test',
+				flag: true,
+				showDiv: false,
+				person: {
+					name: 'lee',
+					age: 18,
+				},
+			}
+		},
+		methods: {
+			toggleClick() {
+				this.showDiv = !this.showDiv
+			},
+			switchClick() {
+				this.person = {
+					name: 'lebron',
+					age: 34,
+				}
+			},
+		}
+	})
+	</script>
+</body>
+</html>
