@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>vue-demo</title>
+	<style type="text/css">
+		.red {
+			color: red;
+		}
+	</style>
+</head>
+<body>
+	<div id="app">
+		<input type="text" v-model="word">
+		<p>{{word}}</p>
+		<li v-for="item in list" :class="{red: item.active}">{{item.text}}</li>
+		<button @click="testEvent">test</button>
+	</div>
+
+	<script src="http://cdn.bootcss.com/vue/1.0.25/vue.js"></script>
+	<script>
+		var vm = new Vue({
+			el: '#app',
+			data: {
+				word: 'Hello World!',
+				list: [
+					{
+						text: '111',
+					},
+				],
+			},
+			methods: {
+				testEvent() {
+					console.log(this.list)
+					let list = this.list.map(item => {
+						item.active = true
+						return item
+					})
+					this.list = JSON.parse(JSON.stringify(list))
+					console.log(this.list)
+				}
+			}
+		});
+	</script>
+</body>
+</html>
