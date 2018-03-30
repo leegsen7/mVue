@@ -1,5 +1,5 @@
 import Dep from './Dep'
-import getExpressionVal from './utils/getExpressionVal'
+import parseExpression from './parseExpression'
 /**
  * [Watcher description]
  * @Author leegsen
@@ -48,7 +48,7 @@ Watcher.prototype = {
 		var data = this.vm.$data
 		var exp = this.exp
 
-		return getExpressionVal(exp,data);
+		return parseExpression(exp,data);
 	}
 }
 

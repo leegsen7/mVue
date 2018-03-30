@@ -1,8 +1,8 @@
 import Watcher from './Watcher'
-import getExpressionVal from './utils/getExpressionVal'
+import parseExpression from './parseExpression'
 
 // 插值{{}}正则
-const interpolationReg = /\{\{(.*)\}\}/
+const interpolationReg = /\{\{([^\}\}]+)\}\}/
 
 function Compile(el,vm){
 	this.$vm = vm;
@@ -74,10 +74,13 @@ Compile.prototype = {
 	},
     // 编译插值表达式
 	compileText:function(node){
-		let text = node.textContent.replace(interpolationReg,(val,p1) => {
-            return compileUtil.getVMVal(this.$vm,p1)
-        })
-        // console.log(text)
+        let matchRes = null
+        let expList = []
+        let gReg = new RegExp(interpolationReg,'g')
+        while (matchRes = gReg.exec(node.textContent)) {
+            expList.push(matchRes[1])
+        }
+        compileUtil.braceBind(node, this.$vm, expList)
 	},
 	isElementNode: el => {
 		return el.nodeType === 1;
@@ -125,9 +128,19 @@ var compileUtil = {
     	var value = this.getVMVal(vm,val);
     	this.dirHandler(node,value,dir);
     	// 实例化一个watcher对象 回调
-    	new Watcher(vm,val,(newVal,oldVal) => {
-    		this.dirHandler(node,newVal,dir,oldVal);
+    	new Watcher(vm,val,(newVal) => {
+    		this.dirHandler(node,newVal,dir);
     	})
+    },
+    // 插值绑定
+    braceBind: function (node, vm, expList) {
+        let backupText = node.textContent
+        this.braceHandler(node, vm, backupText)
+        expList.forEach(exp => {
+            new Watcher(vm, exp, newVal => {
+                this.braceHandler(node, vm, backupText)
+            })
+        })
     },
     // 事件处理
     eventHandler:function(node,vm,val,event){
@@ -137,11 +150,17 @@ var compileUtil = {
     		node.addEventListener(event,fn.bind(vm));
     	}
     },
+    // 插值处理
+    braceHandler: function (node, vm, backupText) {
+        node.textContent = backupText.replace(new RegExp(interpolationReg,'g'),(val,p1) => {
+            return this.getVMVal(vm,p1)
+        })
+    },
     attrHandler: function(node,val,type) {
 
     },
     // 指令处理
-    dirHandler:function(node,val,type,oldVal){
+    dirHandler:function(node,val,type){
     	switch (type){
     		case "text":
     			node.innerText = val || '';
@@ -171,11 +190,10 @@ var compileUtil = {
     	}
     },
     setVMVal:function(vm, val, newValue){
-    	var data = vm.$data;
-    	new Function("this."+val+"=\'"+newValue+"\'").apply(data);
+    	new Function("this."+val+"=\'"+newValue+"\'").apply(vm);
     },
     getVMVal:function(vm,val){
-		return getExpressionVal(val,vm.$data)
+		return parseExpression(val,vm)
     }
 }
 
