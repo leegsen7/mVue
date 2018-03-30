@@ -1,5 +1,5 @@
-import Observe from './observer'
-import Compile from './compile'
+import Observe from './Observer'
+import Compile from './Compile'
 
 function Vue(options){
 	this.$options = options;
