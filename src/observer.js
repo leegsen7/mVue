@@ -1,13 +1,13 @@
 import Dep from './Dep'
 
 
-function Observe(data) {
+function Observer(data) {
     this.data = data;
     this.beforeInt();
 };
 
-Observe.prototype = {
-    constructor:Observe,
+Observer.prototype = {
+    constructor:Observer,
     beforeInt:function (){
         var data = this.data;
         if (!data || typeof data !== 'object') {
@@ -24,13 +24,17 @@ Observe.prototype = {
     },
     defineReactive: function(data,key,val){
         var dep = new Dep();
-        new Observe(val); // 监听子属性
+        new Observer(val); // 监听子属性
 
         Object.defineProperty(data, key, {
             enumerable: true, // 可枚举
             configurable: false, // 不能再define
             get: () => {
+                // Compile初始化也会触发get方法，但此时Dep.target为null
+                // 触发Watcher里面的getVMVal时，Dep.target有值，是Watcher的当前实例
+                // Watcher line 42
                 if (Dep.target){
+                    // 收集依赖
                     dep.depend();
                 }
                 return val;
@@ -39,7 +43,8 @@ Observe.prototype = {
                 if (val === newVal) return;
                 console.log('监听到值变化了 ', val, ' --> ', newVal);
                 val = newVal;
-                new Observe(newVal);
+                new Observer(newVal);
+                // 触发依赖
                 dep.notify();
             }
         });
@@ -47,4 +52,4 @@ Observe.prototype = {
 
 }
 
-export default Observe
+export default Observer

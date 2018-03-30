@@ -1,4 +1,4 @@
-import Observe from './Observer'
+import Observer from './Observer'
 import Compile from './Compile'
 
 function Vue(options){
@@ -6,7 +6,7 @@ function Vue(options){
 	this.$data = this.$options.data();
     this.$proxy()
 
-	new Observe(this.$data);
+	new Observer(this.$data);
 	new Compile(this.$options.el || document.body,this);
 }
 // 把data,method代理到当前实例上去

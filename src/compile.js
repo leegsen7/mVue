@@ -127,7 +127,7 @@ var compileUtil = {
     bind:function(node,vm,val,dir){
     	var value = this.getVMVal(vm,val);
     	this.dirHandler(node,value,dir);
-    	// 实例化一个watcher对象 回调
+    	// 实例化一个watcher对象和回调函数
     	new Watcher(vm,val,(newVal) => {
     		this.dirHandler(node,newVal,dir);
     	})
@@ -137,6 +137,7 @@ var compileUtil = {
         let backupText = node.textContent
         this.braceHandler(node, vm, backupText)
         expList.forEach(exp => {
+            // 实例化一个watcher对象和回调函数
             new Watcher(vm, exp, newVal => {
                 this.braceHandler(node, vm, backupText)
             })

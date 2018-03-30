@@ -12,7 +12,7 @@
 <body>
 	<div id="app">
 		<ul>
-			<!-- <li>
+			<li>
 				<div><input type="text" v-model="inputVal_1"></div>
 				<div>这是双向数据绑定:<span v-text="inputVal_1"></span></div>
 			</li>
@@ -21,13 +21,12 @@
 					名字: <input type="text" v-model="person.name"><br>
 					年龄: <input type="text" v-model="person.age">
 				</div>
-				<div>我的名字是<span v-text="person.name"></span>,今年<span v-text="person.age"></span>岁</div>
+				<div>我的名字是{{person.name}},今年{{person.age}}岁</div>
 				<button @click="switchClick">替换</button>
-			</li> -->
+			</li>
 			<li>
 				<button @click="toggleClick">点击{{curVal === 'show' ? '隐藏' : '显示'}}</button>
-				<button @click="switchClick">点击切换</button>
-				<div v-show="curVal === 'show'">我的名字是{{person.name}},我今年{{person.age}}岁</div>
+				<div v-show="curVal === 'show'">我显示了</div>
 			</li>
 		</ul>
 	</div>
@@ -38,7 +37,6 @@
 		data() {
 			return {
 				inputVal_1: 'test',
-				flag: true,
 				curVal: 'show',
 				person: {
 					name: 'lee',
@@ -48,8 +46,7 @@
 		},
 		methods: {
 			toggleClick() {
-				// this.flag = !this.flag
-				this.curVal = this.curVal ? '' : 'show'
+				this.curVal = this.curVal === 'show' ? 'hide' : 'show'
 			},
 			switchClick() {
 				this.person = {

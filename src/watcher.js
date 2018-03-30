@@ -29,17 +29,19 @@ Watcher.prototype = {
 		}
 	},
 	// observer getter 执行
-	addDep: function (dep){
-		// 没有这个id属性，说明是新的属性
-		if (!this.depIds.hasOwnProperty(dep.id)){
-			// 将此时的实例对象添加到订阅者数组中
-			dep.addSub(this);
-			this.depIds[dep.id] = dep;
-		}
-	},
+	// addDep: function (dep){
+	// 	// 没有这个id属性，说明是新的属性
+	// 	if (!this.depIds.hasOwnProperty(dep.id)){
+	// 		// 将此时的实例对象添加到订阅者数组中
+	// 		dep.addSub(this);
+	// 		this.depIds[dep.id] = dep;
+	// 	}
+	// },
 	// 触发observer getter
 	get:function(){
 		Dep.target = this;
+		// 这个方法会取值会触发Object.defineProperty get方法
+		// Observer line 32
 		var value = this.getVMVal();
 		Dep.target = null;
 		return value;
