@@ -10,7 +10,7 @@
 	</style>
 </head>
 <body>
-	<div id="main">
+	<div id="app">
 		<ul>
 			<!-- <li>
 				<div><input type="text" v-model="inputVal_1"></div>
@@ -26,19 +26,18 @@
 			</li> -->
 			<li>
 				<button @click="toggleClick">点击{{flag ? '隐藏' : '显示'}}</button>
-				<!-- <div v-show="flag && showDiv">我显示了</div> -->
+				<div v-show="flag">我显示了</div>
 			</li>
 		</ul>
 	</div>
 	<script src="mVue.js"></script>
 	<script>
 	var app = new Vue({
-		el:'#main',
+		el:'#app',
 		data() {
 			return {
 				inputVal_1: 'test',
 				flag: true,
-				showDiv: false,
 				person: {
 					name: 'lee',
 					age: 18,
@@ -47,7 +46,7 @@
 		},
 		methods: {
 			toggleClick() {
-				this.showDiv = !this.showDiv
+				this.flag = !this.flag
 			},
 			switchClick() {
 				this.person = {

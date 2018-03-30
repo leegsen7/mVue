@@ -1,5 +1,5 @@
 import Watcher from './Watcher'
-import getExpressionVal from './utils/getExpressionVal'
+import parseExpression from './parseExpression'
 
 // 插值{{}}正则
 const interpolationReg = /\{\{(.*)\}\}/
@@ -77,7 +77,7 @@ Compile.prototype = {
 		let text = node.textContent.replace(interpolationReg,(val,p1) => {
             return compileUtil.getVMVal(this.$vm,p1)
         })
-        // console.log(text)
+        node.textContent = text
 	},
 	isElementNode: el => {
 		return el.nodeType === 1;
@@ -125,8 +125,8 @@ var compileUtil = {
     	var value = this.getVMVal(vm,val);
     	this.dirHandler(node,value,dir);
     	// 实例化一个watcher对象 回调
-    	new Watcher(vm,val,(newVal,oldVal) => {
-    		this.dirHandler(node,newVal,dir,oldVal);
+    	new Watcher(vm,val,(newVal) => {
+    		this.dirHandler(node,newVal,dir);
     	})
     },
     // 事件处理
@@ -141,7 +141,7 @@ var compileUtil = {
 
     },
     // 指令处理
-    dirHandler:function(node,val,type,oldVal){
+    dirHandler:function(node,val,type){
     	switch (type){
     		case "text":
     			node.innerText = val || '';
@@ -175,7 +175,7 @@ var compileUtil = {
     	new Function("this."+val+"=\'"+newValue+"\'").apply(data);
     },
     getVMVal:function(vm,val){
-		return getExpressionVal(val,vm.$data)
+		return parseExpression(val,vm.$data)
     }
 }
 

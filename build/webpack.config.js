@@ -7,8 +7,8 @@ function resolveUrl(url) {
 module.exports = {
     entry: resolveUrl('src/index.js'),
     output: {
-        path: resolveUrl('build/'),
-        publicPath: resolveUrl('./'),
+        path: '/',
+        publicPath: '/',
         filename: 'mVue.js',
     },
     // module: {
