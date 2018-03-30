@@ -25,8 +25,9 @@
 				<button @click="switchClick">替换</button>
 			</li> -->
 			<li>
-				<button @click="toggleClick">点击{{flag ? '隐藏' : '显示'}}</button>
-				<div v-show="flag">我显示了</div>
+				<button @click="toggleClick">点击{{curVal === 'show' ? '隐藏' : '显示'}}</button>
+				<button @click="switchClick">点击切换</button>
+				<div v-show="curVal === 'show'">我的名字是{{person.name}},我今年{{person.age}}岁</div>
 			</li>
 		</ul>
 	</div>
@@ -38,6 +39,7 @@
 			return {
 				inputVal_1: 'test',
 				flag: true,
+				curVal: 'show',
 				person: {
 					name: 'lee',
 					age: 18,
@@ -46,7 +48,8 @@
 		},
 		methods: {
 			toggleClick() {
-				this.flag = !this.flag
+				// this.flag = !this.flag
+				this.curVal = this.curVal ? '' : 'show'
 			},
 			switchClick() {
 				this.person = {
