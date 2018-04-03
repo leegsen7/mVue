@@ -82,11 +82,15 @@
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _Watcher__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Watcher */ "./src/Watcher.js");
 /* harmony import */ var _parseExpression__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./parseExpression */ "./src/parseExpression.js");
+/* harmony import */ var _utils_classAttrUtil__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utils/classAttrUtil */ "./src/utils/classAttrUtil.js");
+
 
 
 
 // 插值{{}}正则
 const interpolationReg = /\{\{([^\}\}]+)\}\}/
+
+const eventArgsReg = /\((.*)\)/
 
 function Compile(el,vm){
 	this.$vm = vm;
@@ -151,9 +155,23 @@ Compile.prototype = {
 			// @ 事件指令
 			if (this.isEventDirective(name)){
 				let event = name.substring(1);
-				compileUtil.eventHandler(node,this.$vm,val,event);
+                let fnName = val
+                let argList = []
+                // 判断绑定的函数里有没有参数
+                let matchRes = val.match(eventArgsReg)
+                if (matchRes) {
+                    fnName = val.substring(0,matchRes.index)
+                    argList = matchRes[1].split(',')
+                }
+				compileUtil.eventHandler(node,this.$vm,event,fnName,argList);
 				node.removeAttribute(name);
 			}
+            // 属性绑定
+            if (this.isAttrDirective(name)) {
+                let attr = name.substring(1)
+                compileUtil.attrBind(node,this.$vm,attr,val);
+                node.removeAttribute(name);
+            }
 		})
 	},
     // 编译插值表达式
@@ -202,7 +220,7 @@ var compileUtil = {
         })
 
         function Func(e){
-            if (!(cpLock === true)){
+            if (!cpLock){
                 var newValue = e.target.value;
                 self.setVMVal(vm, val, newValue);
             }
@@ -216,6 +234,16 @@ var compileUtil = {
     		this.dirHandler(node,newVal,dir);
     	})
     },
+    // 事件处理
+    eventHandler:function(node,vm,event,fnName,argList){
+    	let fn = vm[fnName]
+    	if (fn && event){
+    		// 绑定@函数
+    		node.addEventListener(event,() => {
+                fn.apply(vm,argList.map(item => this.getVMVal(vm, item)))
+            });
+    	}
+    },
     // 插值绑定
     braceBind: function (node, vm, expList) {
         let backupText = node.textContent
@@ -227,22 +255,67 @@ var compileUtil = {
             })
         })
     },
-    // 事件处理
-    eventHandler:function(node,vm,val,event){
-    	var fn = vm[val]
-    	if (fn && event){
-    		// 绑定@函数
-    		node.addEventListener(event,fn.bind(vm));
-    	}
-    },
     // 插值处理
     braceHandler: function (node, vm, backupText) {
         node.textContent = backupText.replace(new RegExp(interpolationReg,'g'),(val,p1) => {
             return this.getVMVal(vm,p1)
         })
     },
+    // 属性绑定
+    attrBind(node, vm, type, exp) {
+        if (type === 'class') {
+            let {res,isSameJson,isSameArr} = Object(_utils_classAttrUtil__WEBPACK_IMPORTED_MODULE_2__["default"])(exp)
+            if (isSameJson) {
+                res.forEach(item => {
+                    this.attrHandler(node,{
+                        type: (this.getVMVal(vm, item.nameExp) ? 'add' : 'remove'),
+                        class: item.name,
+                    }, type)
+                    new _Watcher__WEBPACK_IMPORTED_MODULE_0__["default"](vm, item.nameExp, newValue => {
+                        this.attrHandler(node,{
+                            type: (newValue ? 'add' : 'remove'),
+                            class: item.name,
+                        }, type)
+                    })
+                })
+            }
+            else if (isSameArr) {
+                res.forEach(item => {
+                    this.attrHandler(node,{
+                        type: 'add',
+                        class: this.getVMVal(vm, item),
+                    }, type)
+                    new _Watcher__WEBPACK_IMPORTED_MODULE_0__["default"](vm, item, (newValue,oldValue) => {
+                        this.attrHandler(node,{
+                            type: 'add',
+                            class: newValue,
+                        }, type)
+                        this.attrHandler(node,{
+                            type: 'remove',
+                            class: oldValue,
+                        }, type)
+                    })
+                })
+            }
+            else {
+                throw(`${exp} 无效的class绑定`)
+            }
+        }
+        else {
+            this.attrHandler(node, this.getVMVal(vm, exp), type)
+            new _Watcher__WEBPACK_IMPORTED_MODULE_0__["default"](vm, exp, newValue => {
+                this.attrHandler(node, newValue, type)
+            })
+        }
+    },
+    // 属性处理
     attrHandler: function(node,val,type) {
-
+        if (type === 'class') {
+            node.classList[val.type](val.class)
+        }
+        else {
+            node.setAttribute(type,val)
+        }
     },
     // 指令处理
     dirHandler:function(node,val,type){
@@ -650,6 +723,48 @@ function makeGetterFn (body) {
 
 function parseExpression (exp, vm) {
     return compileGetter(exp)(vm)
+}
+
+/***/ }),
+
+/***/ "./src/utils/classAttrUtil.js":
+/*!************************************!*\
+  !*** ./src/utils/classAttrUtil.js ***!
+  \************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return classAttrUtil; });
+
+/**
+ * [classAttrUtil 判断绑定的class属性的结构]
+ * @Author leegsen
+ * @time   2018-04-03T10:58:39+0800
+ * @param  {[type]}                 exp [description]
+ * @return {[type]}                     [description]
+ */
+// 类json结构
+// :class="{active: active}"
+const isSameJsonReg = /^\{/
+// 类数组结构
+// :class="[errorClass,classType > 0 ? 'status1' : 'status0']"
+const isSameArrReg = /^\[/
+function classAttrUtil(exp) {
+    let isSameJson = isSameJsonReg.test(exp)
+    let isSameArr = isSameArrReg.test(exp)
+    // 除去外面的{},[],分割成数组
+    let res = exp.substring(1,exp.length - 1).split(',').map(val => {
+        if (isSameJson) {
+            let [name,nameExp] = val.split(':')
+            return {name,nameExp}
+        }
+        if (isSameArrReg) {
+            return val
+        }
+    })
+    return {isSameJson,isSameArr,res}
 }
 
 /***/ }),

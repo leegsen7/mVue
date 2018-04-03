@@ -9,5 +9,11 @@
 <div>我的名字是{{person.name}},今年{{person.age}}岁</div>
 <button @click="toggleClick">点击{{curVal === 'show' ? '隐藏' : '显示'}}</button>
 ```
-
+4. [x] 属性绑定: class、title、href、src，例如:
+```javascript
+<div class="text1" :class="{active: active}"></div>
+<div class="text2" :class="[errorClass,classType > 0 ? 'status1' : 'status0']"></div>
+<a :href="hrefVal" :title="titleVal" target="_blank">点击跳转</a>
+```
+5. [x] 事件绑定传值，例如：`@click="clickEventTest(inputVal_2)"`
 #### [Demo](https://leegsen7.github.io/mVue/index.html)

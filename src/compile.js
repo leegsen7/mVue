@@ -1,8 +1,11 @@
 import Watcher from './Watcher'
 import parseExpression from './parseExpression'
+import classAttrUtil from './utils/classAttrUtil'
 
 // 插值{{}}正则
 const interpolationReg = /\{\{([^\}\}]+)\}\}/
+
+const eventArgsReg = /\((.*)\)/
 
 function Compile(el,vm){
 	this.$vm = vm;
@@ -67,9 +70,23 @@ Compile.prototype = {
 			// @ 事件指令
 			if (this.isEventDirective(name)){
 				let event = name.substring(1);
-				compileUtil.eventHandler(node,this.$vm,val,event);
+                let fnName = val
+                let argList = []
+                // 判断绑定的函数里有没有参数
+                let matchRes = val.match(eventArgsReg)
+                if (matchRes) {
+                    fnName = val.substring(0,matchRes.index)
+                    argList = matchRes[1].split(',')
+                }
+				compileUtil.eventHandler(node,this.$vm,event,fnName,argList);
 				node.removeAttribute(name);
 			}
+            // 属性绑定
+            if (this.isAttrDirective(name)) {
+                let attr = name.substring(1)
+                compileUtil.attrBind(node,this.$vm,attr,val);
+                node.removeAttribute(name);
+            }
 		})
 	},
     // 编译插值表达式
@@ -118,7 +135,7 @@ var compileUtil = {
         })
 
         function Func(e){
-            if (!(cpLock === true)){
+            if (!cpLock){
                 var newValue = e.target.value;
                 self.setVMVal(vm, val, newValue);
             }
@@ -132,6 +149,16 @@ var compileUtil = {
     		this.dirHandler(node,newVal,dir);
     	})
     },
+    // 事件处理
+    eventHandler:function(node,vm,event,fnName,argList){
+    	let fn = vm[fnName]
+    	if (fn && event){
+    		// 绑定@函数
+    		node.addEventListener(event,() => {
+                fn.apply(vm,argList.map(item => this.getVMVal(vm, item)))
+            });
+    	}
+    },
     // 插值绑定
     braceBind: function (node, vm, expList) {
         let backupText = node.textContent
@@ -143,22 +170,67 @@ var compileUtil = {
             })
         })
     },
-    // 事件处理
-    eventHandler:function(node,vm,val,event){
-    	var fn = vm[val]
-    	if (fn && event){
-    		// 绑定@函数
-    		node.addEventListener(event,fn.bind(vm));
-    	}
-    },
     // 插值处理
     braceHandler: function (node, vm, backupText) {
         node.textContent = backupText.replace(new RegExp(interpolationReg,'g'),(val,p1) => {
             return this.getVMVal(vm,p1)
         })
     },
+    // 属性绑定
+    attrBind(node, vm, type, exp) {
+        if (type === 'class') {
+            let {res,isSameJson,isSameArr} = classAttrUtil(exp)
+            if (isSameJson) {
+                res.forEach(item => {
+                    this.attrHandler(node,{
+                        type: (this.getVMVal(vm, item.nameExp) ? 'add' : 'remove'),
+                        class: item.name,
+                    }, type)
+                    new Watcher(vm, item.nameExp, newValue => {
+                        this.attrHandler(node,{
+                            type: (newValue ? 'add' : 'remove'),
+                            class: item.name,
+                        }, type)
+                    })
+                })
+            }
+            else if (isSameArr) {
+                res.forEach(item => {
+                    this.attrHandler(node,{
+                        type: 'add',
+                        class: this.getVMVal(vm, item),
+                    }, type)
+                    new Watcher(vm, item, (newValue,oldValue) => {
+                        this.attrHandler(node,{
+                            type: 'add',
+                            class: newValue,
+                        }, type)
+                        this.attrHandler(node,{
+                            type: 'remove',
+                            class: oldValue,
+                        }, type)
+                    })
+                })
+            }
+            else {
+                throw(`${exp} 无效的class绑定`)
+            }
+        }
+        else {
+            this.attrHandler(node, this.getVMVal(vm, exp), type)
+            new Watcher(vm, exp, newValue => {
+                this.attrHandler(node, newValue, type)
+            })
+        }
+    },
+    // 属性处理
     attrHandler: function(node,val,type) {
-
+        if (type === 'class') {
+            node.classList[val.type](val.class)
+        }
+        else {
+            node.setAttribute(type,val)
+        }
     },
     // 指令处理
     dirHandler:function(node,val,type){
