@@ -16,4 +16,4 @@
 <a :href="hrefVal" :title="titleVal" target="_blank">点击跳转</a>
 ```
 5. [x] 事件绑定传值，例如：`@click="clickEventTest(inputVal_2)"`
-#### [Demo](https://leegsen7.github.io/mVue/index.html)
+#### <a href="https://leegsen7.github.io/mVue/index.html" target="_blank">Demo</a>
