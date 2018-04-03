@@ -83,14 +83,18 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _Watcher__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Watcher */ "./src/Watcher.js");
 /* harmony import */ var _parseExpression__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./parseExpression */ "./src/parseExpression.js");
 /* harmony import */ var _utils_classAttrUtil__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utils/classAttrUtil */ "./src/utils/classAttrUtil.js");
+/* harmony import */ var _utils_insertAfter__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./utils/insertAfter */ "./src/utils/insertAfter.js");
+
 
 
 
 
 // 插值{{}}正则
 const interpolationReg = /\{\{([^\}\}]+)\}\}/
-
+// 事件参数正则
 const eventArgsReg = /\((.*)\)/
+// v-for指令正则
+const vForReg = /(.*)\sin\s(.*)/
 
 function Compile(el,vm){
 	this.$vm = vm;
@@ -144,12 +148,15 @@ Compile.prototype = {
 			// v- 指令
 			if (this.isDirective(name)){
 				let dir = name.substring(2);
-				if (dir == 'model'){
+				if (dir === 'model') {
 					compileUtil.model(node,this.$vm,val);
 				}
-				else {
-					compileUtil.bind(node,this.$vm,val,dir);
+				else if (dir === 'for') {
+					vForReg.test(val) && compileUtil.vForBind(node,this.$vm,val);
 				}
+                else {
+                    compileUtil.bind(node,this.$vm,val,dir);
+                }
 				node.removeAttribute(name);
 			}
 			// @ 事件指令
@@ -315,6 +322,21 @@ var compileUtil = {
         }
         else {
             node.setAttribute(type,val)
+        }
+    },
+    // v-for指令绑定
+    vForBind(node, vm, val) {
+        let [,forKey,forVal] = val.match(vForReg)
+        let vmVal = this.getVMVal(vm, forVal)
+        this.dirForHandler(node, vmVal)
+    },
+    // v-for指令处理
+    dirForHandler(node,val) {
+        console.log(node,val)
+        for (let i in val) {
+            if (val.hasOwnProperty(i)) {
+                Object(_utils_insertAfter__WEBPACK_IMPORTED_MODULE_3__["default"])(node,node)
+            }
         }
     },
     // 指令处理
@@ -765,6 +787,37 @@ function classAttrUtil(exp) {
         }
     })
     return {isSameJson,isSameArr,res}
+}
+
+/***/ }),
+
+/***/ "./src/utils/insertAfter.js":
+/*!**********************************!*\
+  !*** ./src/utils/insertAfter.js ***!
+  \**********************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return insertAfter; });
+/**
+ * [insertAfter 在某个节点后面插入新节点]
+ * @Author leegsen
+ * @time   2018-04-03T17:43:19+0800
+ * @param  {[type]}                 newElement    [description]
+ * @param  {[type]}                 targetElement [description]
+ * @return {[type]}                               [description]
+ */
+function insertAfter(newElement, targetElement) {
+    var parent = targetElement.parentNode; //获取目标节点的父级标签
+    if (parent.lastChild === targetElement) { //如果目标节点正好是最后一个节点，使用appendChild插入
+        parent.appendChild(newElement);
+    }
+    else {
+        parent.insertBefore(newElement, targetElement.nextSibling); //一般情况下要取得目标节点的下一个节点，再使用insertBefore()方法。
+    }
+    console.log(parent)
 }
 
 /***/ }),

@@ -1,11 +1,14 @@
 import Watcher from './Watcher'
 import parseExpression from './parseExpression'
 import classAttrUtil from './utils/classAttrUtil'
+import insertAfter from './utils/insertAfter'
 
 // 插值{{}}正则
 const interpolationReg = /\{\{([^\}\}]+)\}\}/
-
+// 事件参数正则
 const eventArgsReg = /\((.*)\)/
+// v-for指令正则
+const vForReg = /(.*)\sin\s(.*)/
 
 function Compile(el,vm){
 	this.$vm = vm;
@@ -59,12 +62,15 @@ Compile.prototype = {
 			// v- 指令
 			if (this.isDirective(name)){
 				let dir = name.substring(2);
-				if (dir == 'model'){
+				if (dir === 'model') {
 					compileUtil.model(node,this.$vm,val);
 				}
-				else {
-					compileUtil.bind(node,this.$vm,val,dir);
+				else if (dir === 'for') {
+					vForReg.test(val) && compileUtil.vForBind(node,this.$vm,val);
 				}
+                else {
+                    compileUtil.bind(node,this.$vm,val,dir);
+                }
 				node.removeAttribute(name);
 			}
 			// @ 事件指令
@@ -230,6 +236,21 @@ var compileUtil = {
         }
         else {
             node.setAttribute(type,val)
+        }
+    },
+    // v-for指令绑定
+    vForBind(node, vm, val) {
+        let [,forKey,forVal] = val.match(vForReg)
+        let vmVal = this.getVMVal(vm, forVal)
+        this.dirForHandler(node, vmVal)
+    },
+    // v-for指令处理
+    dirForHandler(node,val) {
+        console.log(node,val)
+        for (let i in val) {
+            if (val.hasOwnProperty(i)) {
+                insertAfter(node,node)
+            }
         }
     },
     // 指令处理

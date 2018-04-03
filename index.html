@@ -4,6 +4,10 @@
 	<meta charset="UTF-8">
 	<title>Document</title>
 	<style type="text/css">
+		#app {
+			width: 1000px;
+			margin: auto;
+		}
 		li {
 			list-style: decimal;
 		}
@@ -41,9 +45,19 @@
 		.text2.status1::after {
 			border-top-color: orange;
 		}
+		.item {
+			width: 50px;
+			text-align: center;
+		}
+		.item + .item {
+			margin-left: 15px;
+		}
 	</style>
 </head>
 <body>
+	<a href="https://github.com/leegsen7/mVue" target="_blank">
+		<img style="position: absolute; top: 0; right: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png" alt="Fork me on Github" />
+	</a>
 	<div id="app">
 		<ul>
 			<li>
@@ -65,7 +79,7 @@
 				<div>我的名字是{{person.name}},今年{{person.age}}岁</div>
 			</li>
 			<li>
-				<div class="li-title">v-show复杂表达式</div>
+				<div class="li-title">v-show指令复杂表达式</div>
 				<button @click="toggleClick">点击{{curVal === 'show' ? '隐藏' : '显示'}}</button>
 				<div v-show="curVal === 'show'">我显示了</div>
 			</li>
@@ -94,6 +108,10 @@
 				<div>
 					<img :src="imgPreList[curImgIndex]" style="height: 100px;margin-top: 15px;" />
 				</div>
+			</li>
+			<li>
+				<div class="li-title">v-for指令</div>
+				<span class="item" v-for="item in repeatData">{{item}}</span>
 			</li>
 		</ul>
 	</div>
@@ -124,6 +142,9 @@
 				titleVal: '',
 				curImgIndex: 0,
 				imgPreList,
+				repeatData: [
+					1,2,3
+				]
 			}
 		},
 		methods: {
