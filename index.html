@@ -4,55 +4,165 @@
 	<meta charset="UTF-8">
 	<title>Document</title>
 	<style type="text/css">
+		#app {
+			width: 1000px;
+			margin: auto;
+		}
+		li {
+			list-style: decimal;
+		}
 		li + li {
 			margin-top: 15px;
+		}
+		.active {
+			color: red;
+		}
+		.text-danger {
+			background: red;
+			color: #fff;
+		}
+		.text-success {
+			background: green;
+			color: #fff;
+		}
+		.text2 {
+			position: relative;
+			line-height: 40px;
+			padding-left: 20px;
+		}
+		.text2::after {
+			content: '';
+			display: inline-block;
+			position: absolute;
+			top: 5px;
+			left: 0;
+			border-top: 20px solid;
+			border-right: 20px solid transparent;
+		}
+		.text2.status0::after {
+			border-top-color: yellow;
+		}
+		.text2.status1::after {
+			border-top-color: orange;
+		}
+		.item {
+			width: 50px;
+			text-align: center;
+		}
+		.item + .item {
+			margin-left: 15px;
 		}
 	</style>
 </head>
 <body>
+	<a href="https://github.com/leegsen7/mVue" target="_blank">
+		<img style="position: absolute; top: 0; right: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png" alt="Fork me on Github" />
+	</a>
 	<div id="app">
 		<ul>
 			<li>
+				<div class="li-title">v-model和v-text指令</div>
 				<div><input type="text" v-model="inputVal_1"></div>
 				<div>这是双向数据绑定:<span v-text="inputVal_1"></span></div>
 			</li>
 			<li>
+				<div class="li-title">@click事件绑定和传值</div>
+				<div>请输入要传的值：<input type="text" v-model="inputVal_2"></div>
+				<button @click="clickEventTest(inputVal_2)">点击测试</button>
+			</li>
+			<li>
+				<div class="li-title">复杂插值表达式</div>
 				<div>
 					名字: <input type="text" v-model="person.name"><br>
 					年龄: <input type="text" v-model="person.age">
 				</div>
 				<div>我的名字是{{person.name}},今年{{person.age}}岁</div>
-				<button @click="switchClick">替换</button>
 			</li>
 			<li>
+				<div class="li-title">v-show指令复杂表达式</div>
 				<button @click="toggleClick">点击{{curVal === 'show' ? '隐藏' : '显示'}}</button>
 				<div v-show="curVal === 'show'">我显示了</div>
 			</li>
+			<li>
+				<div class="li-title">:class属性绑定</div>
+				<button @click="switchClass">切换样式</button>
+				<div class="text1" :class="{active: active}">
+					表达式: <code>:class="{active: active}"</code> active: {{active}}
+				</div>
+				<div class="text2" :class="[errorClass,classType > 0 ? 'status1' : 'status0']">
+					表达式: <code>:class="[errorClass,classType > 0 ? 'status1' : 'status0']"</code> errorClass: {{errorClass}},classType: {{classType}}
+				</div>
+			</li>
+			<li>
+				<div class="li-title">:href和:title属性绑定</div>
+				输入要跳转的链接 <input type="text" name="" v-model="hrefVal">
+				<div>这是要跳转的链接: {{hrefVal || '无'}}</div>
+				输入要显示的title <input type="text" name="" v-model="titleVal">
+				<div>这是要显示的title: {{titleVal || '无'}}</div>
+				<div><a :href="hrefVal" :title="titleVal" target="_blank">点击跳转</a></div>
+			</li>
+			<li>
+				<div class="li-title">:src属性绑定</div>
+				<button @click="switchImg(-1)" style="margin-right: 15px;">上一张</button>
+				<button @click="switchImg(1)">下一张</button>
+				<div>
+					<img :src="imgPreList[curImgIndex]" style="height: 100px;margin-top: 15px;" />
+				</div>
+			</li>
+			<li>
+				<div class="li-title">v-for指令</div>
+				<span class="item" v-for="item in repeatData">{{item}}</span>
+			</li>
 		</ul>
 	</div>
-	<script src="mVue.js"></script>
+	<script src="./dist/mVue.js"></script>
 	<script>
 	var app = new Vue({
 		el:'#app',
 		data() {
+			const imgPreList = [
+				'http://www.w3school.com.cn/ui2017/compatible_ie.png',
+				'http://www.w3school.com.cn/ui2017/compatible_firefox.png',
+				'http://www.w3school.com.cn/ui2017/compatible_chrome.png',
+				'http://www.w3school.com.cn/ui2017/compatible_safari.png',
+				'http://www.w3school.com.cn/ui2017/compatible_opera.png',
+			]
 			return {
 				inputVal_1: 'test',
+				inputVal_2: '',
 				curVal: 'show',
 				person: {
 					name: 'lee',
 					age: 18,
 				},
+				active: true,
+				errorClass: 'text-danger',
+				classType: 0,
+				hrefVal: '',
+				titleVal: '',
+				curImgIndex: 0,
+				imgPreList,
+				repeatData: [
+					1,2,3
+				]
 			}
 		},
 		methods: {
+			clickEventTest(val) {
+				alert(val || '请输入')
+			},
 			toggleClick() {
 				this.curVal = this.curVal === 'show' ? 'hide' : 'show'
 			},
-			switchClick() {
-				this.person = {
-					name: 'lebron',
-					age: 34,
-				}
+			switchClass() {
+				this.active = !this.active
+				this.errorClass = this.errorClass === 'text-danger' ? 'text-success' : 'text-danger'
+				this.classType = this.classType ? 0 : 1
+			},
+			switchImg(num) {
+				let len = this.imgPreList.length
+				this.curImgIndex += num
+				this.curImgIndex = this.curImgIndex < 0 ? len -1 : this.curImgIndex > len -1 ? 0 : this.curImgIndex
 			},
 		}
 	})
