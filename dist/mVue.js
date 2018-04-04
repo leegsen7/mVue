@@ -332,7 +332,7 @@ var compileUtil = {
     },
     // v-for指令处理
     dirForHandler(node,val) {
-        console.log(node,val)
+        // console.log(node,val)
         for (let i in val) {
             if (val.hasOwnProperty(i)) {
                 Object(_utils_insertAfter__WEBPACK_IMPORTED_MODULE_3__["default"])(node,node)
@@ -405,15 +405,14 @@ Dep.prototype = {
     addSub: function(sub){
         this.subs.push(sub);
     },
-    // 判断和收集依赖
+    // 收集依赖
     depend: function(){
-        // 执行Watcher 里面的方法
-        // Dep.target.addDep(this);
-        // 判断是否是收集过的依赖
-        if (!Dep.target.depIds.hasOwnProperty(this.id)) {
-            // Dep.target为Watcher实例
-            this.addSub(Dep.target)
-            Dep.target.depIds[this.id] = this
+        // Compile初始化也会触发get方法，但此时Dep.target为null
+        // 触发Watcher里面的getVMVal时，Dep.target有值，是Watcher的当前实例
+        // Watcher line 42
+        if (Dep.target) {
+            // Watcher addDep执行
+            Dep.target.addDep(this);
         }
     },
     // 触发依赖
@@ -475,13 +474,8 @@ Observer.prototype = {
             enumerable: true, // 可枚举
             configurable: false, // 不能再define
             get: () => {
-                // Compile初始化也会触发get方法，但此时Dep.target为null
-                // 触发Watcher里面的getVMVal时，Dep.target有值，是Watcher的当前实例
-                // Watcher line 42
-                if (_Dep__WEBPACK_IMPORTED_MODULE_0__["default"].target){
-                    // 收集依赖
-                    dep.depend();
-                }
+                // 收集依赖
+                dep.depend();
                 return val;
             },
             set: newVal => {
@@ -523,11 +517,16 @@ __webpack_require__.r(__webpack_exports__);
  * @param  {[type]}                 exp [表达式]
  * @param  {Function}               cb  [回调函数]
  */
+let uid = 0
+
 function Watcher(vm,exp,cb){
 	this.vm = vm;
 	this.exp = exp;
 	this.cb = cb;
+	this.dep = []
+	this.newDepIds = {}
 	this.depIds = {};
+	this.uid = ++uid
 	this.value = this.get();
 }
 
@@ -541,17 +540,27 @@ Watcher.prototype = {
 		if (oldVal !== newVal) {
 			this.value = newVal;
 			typeof this.cb === 'function' && this.cb.call(this.vm,newVal,oldVal);
+			this.dep.forEach(item => {
+				item.update()
+			})
 		}
 	},
-	// observer getter 执行
-	// addDep: function (dep){
-	// 	// 没有这个id属性，说明是新的属性
-	// 	if (!this.depIds.hasOwnProperty(dep.id)){
-	// 		// 将此时的实例对象添加到订阅者数组中
-	// 		dep.addSub(this);
-	// 		this.depIds[dep.id] = dep;
-	// 	}
-	// },
+    // 判断和收集依赖
+    addDep: function (dep) {
+    	// 判断是否是收集过的依赖
+     	// 没有这个id属性，说明是新的属性
+     	if (!this.depIds.hasOwnProperty(dep.id)){
+            // 将此时的实例对象添加到订阅者数组中
+            dep.addSub(this);
+            this.depIds[dep.id] = dep;
+     	}
+    },
+    depend() {
+    	if (!this.newDepIds.hasOwnProperty(this.uid)) {
+    		this.newDepIds[this.uid] = this.uid
+    		this.dep.push(_Dep__WEBPACK_IMPORTED_MODULE_0__["default"].target)
+    	}
+    },
 	// 触发observer getter
 	get:function(){
 		_Dep__WEBPACK_IMPORTED_MODULE_0__["default"].target = this;
@@ -562,10 +571,7 @@ Watcher.prototype = {
 		return value;
 	},
 	getVMVal:function(){
-		var data = this.vm.$data
-		var exp = this.exp
-
-		return Object(_parseExpression__WEBPACK_IMPORTED_MODULE_1__["default"])(exp,data);
+		return (typeof this.exp === 'function' ? this.exp.call(this.vm) : Object(_parseExpression__WEBPACK_IMPORTED_MODULE_1__["default"])(this.exp, this.vm))
 	}
 }
 
@@ -585,21 +591,25 @@ Watcher.prototype = {
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _Observer__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Observer */ "./src/Observer.js");
 /* harmony import */ var _Compile__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Compile */ "./src/Compile.js");
+/* harmony import */ var _Watcher__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./Watcher */ "./src/Watcher.js");
+/* harmony import */ var _Dep__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./Dep */ "./src/Dep.js");
+
+
 
 
 
 function Vue(options){
 	this.$options = options;
 	this.$data = this.$options.data();
-    this.$proxy()
 
-	new _Observer__WEBPACK_IMPORTED_MODULE_0__["default"](this.$data);
+    new _Observer__WEBPACK_IMPORTED_MODULE_0__["default"](this.$data);
+    this.$proxy()
+    this.initComputed()
 	new _Compile__WEBPACK_IMPORTED_MODULE_1__["default"](this.$options.el || document.body,this);
 }
 // 把data,method代理到当前实例上去
 Vue.prototype.$proxy = function() {
-    Object.keys(this.$data).forEach(key => {
-        this[key] = this.$data[key]
+    for (let key in this.$data) {
         Object.defineProperty(this, key, {
             enumerable: true,
             configurable: true,
@@ -610,10 +620,37 @@ Vue.prototype.$proxy = function() {
                 this.$data[key] = newVal
             }
         });
-    })
-    Object.keys(this.$options.methods).forEach(key => {
+    }
+    for (let key in this.$options.methods) {
         this[key] = this.$options.methods[key]
-    })
+    }
+}
+// 初始化属性计算
+Vue.prototype.initComputed = function() {
+    let {computed} = this.$options
+    if (typeof computed === 'object') {
+        for (let key in computed) {
+            let item = computed[key]
+            if (typeof item === 'function') {
+                Object.defineProperty(this, key, {
+                    enumerable: true,
+                    configurable: true,
+                    get: makeComputedGetter(item, this),
+                    set: () => {},
+                })
+            }
+        }
+    }
+}
+
+function makeComputedGetter(fn, owner) {
+    let watcher = new _Watcher__WEBPACK_IMPORTED_MODULE_2__["default"](owner, fn, null)
+    return function computedGetter() {
+        if (_Dep__WEBPACK_IMPORTED_MODULE_3__["default"].target) {
+            watcher.depend()
+        }
+        return watcher.value
+    }
 }
 
 window.Vue = Vue
@@ -817,7 +854,7 @@ function insertAfter(newElement, targetElement) {
     else {
         parent.insertBefore(newElement, targetElement.nextSibling); //一般情况下要取得目标节点的下一个节点，再使用insertBefore()方法。
     }
-    console.log(parent)
+    // console.log(parent)
 }
 
 /***/ }),

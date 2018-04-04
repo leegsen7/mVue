@@ -12,15 +12,14 @@ Dep.prototype = {
     addSub: function(sub){
         this.subs.push(sub);
     },
-    // 判断和收集依赖
+    // 收集依赖
     depend: function(){
-        // 执行Watcher 里面的方法
-        // Dep.target.addDep(this);
-        // 判断是否是收集过的依赖
-        if (!Dep.target.depIds.hasOwnProperty(this.id)) {
-            // Dep.target为Watcher实例
-            this.addSub(Dep.target)
-            Dep.target.depIds[this.id] = this
+        // Compile初始化也会触发get方法，但此时Dep.target为null
+        // 触发Watcher里面的getVMVal时，Dep.target有值，是Watcher的当前实例
+        // Watcher line 42
+        if (Dep.target) {
+            // Watcher addDep执行
+            Dep.target.addDep(this);
         }
     },
     // 触发依赖

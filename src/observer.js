@@ -30,13 +30,8 @@ Observer.prototype = {
             enumerable: true, // 可枚举
             configurable: false, // 不能再define
             get: () => {
-                // Compile初始化也会触发get方法，但此时Dep.target为null
-                // 触发Watcher里面的getVMVal时，Dep.target有值，是Watcher的当前实例
-                // Watcher line 42
-                if (Dep.target){
-                    // 收集依赖
-                    dep.depend();
-                }
+                // 收集依赖
+                dep.depend();
                 return val;
             },
             set: newVal => {

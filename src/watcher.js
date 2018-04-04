@@ -8,11 +8,16 @@ import parseExpression from './parseExpression'
  * @param  {[type]}                 exp [表达式]
  * @param  {Function}               cb  [回调函数]
  */
+let uid = 0
+
 function Watcher(vm,exp,cb){
 	this.vm = vm;
 	this.exp = exp;
 	this.cb = cb;
+	this.dep = []
+	this.newDepIds = {}
 	this.depIds = {};
+	this.uid = ++uid
 	this.value = this.get();
 }
 
@@ -26,17 +31,27 @@ Watcher.prototype = {
 		if (oldVal !== newVal) {
 			this.value = newVal;
 			typeof this.cb === 'function' && this.cb.call(this.vm,newVal,oldVal);
+			this.dep.forEach(item => {
+				item.update()
+			})
 		}
 	},
-	// observer getter 执行
-	// addDep: function (dep){
-	// 	// 没有这个id属性，说明是新的属性
-	// 	if (!this.depIds.hasOwnProperty(dep.id)){
-	// 		// 将此时的实例对象添加到订阅者数组中
-	// 		dep.addSub(this);
-	// 		this.depIds[dep.id] = dep;
-	// 	}
-	// },
+    // 判断和收集依赖
+    addDep: function (dep) {
+    	// 判断是否是收集过的依赖
+     	// 没有这个id属性，说明是新的属性
+     	if (!this.depIds.hasOwnProperty(dep.id)){
+            // 将此时的实例对象添加到订阅者数组中
+            dep.addSub(this);
+            this.depIds[dep.id] = dep;
+     	}
+    },
+    depend() {
+    	if (!this.newDepIds.hasOwnProperty(this.uid)) {
+    		this.newDepIds[this.uid] = this.uid
+    		this.dep.push(Dep.target)
+    	}
+    },
 	// 触发observer getter
 	get:function(){
 		Dep.target = this;
@@ -47,10 +62,7 @@ Watcher.prototype = {
 		return value;
 	},
 	getVMVal:function(){
-		var data = this.vm.$data
-		var exp = this.exp
-
-		return parseExpression(exp,data);
+		return (typeof this.exp === 'function' ? this.exp.call(this.vm) : parseExpression(this.exp, this.vm))
 	}
 }
 

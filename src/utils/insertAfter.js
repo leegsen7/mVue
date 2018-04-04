@@ -14,5 +14,5 @@ export default function insertAfter(newElement, targetElement) {
     else {
         parent.insertBefore(newElement, targetElement.nextSibling); //一般情况下要取得目标节点的下一个节点，再使用insertBefore()方法。
     }
-    console.log(parent)
+    // console.log(parent)
 }

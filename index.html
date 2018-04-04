@@ -52,6 +52,10 @@
 		.item + .item {
 			margin-left: 15px;
 		}
+		.input-span {
+			display: inline-block;
+			width: 90px;
+		}
 	</style>
 </head>
 <body>
@@ -60,7 +64,7 @@
 	</a>
 	<div id="app">
 		<ul>
-			<li>
+			<!-- <li>
 				<div class="li-title">v-model和v-text指令</div>
 				<div><input type="text" v-model="inputVal_1"></div>
 				<div>这是双向数据绑定:<span v-text="inputVal_1"></span></div>
@@ -112,6 +116,15 @@
 			<li>
 				<div class="li-title">v-for指令</div>
 				<span class="item" v-for="item in repeatData">{{item}}</span>
+			</li> -->
+			<li>
+				<div class="li-title">computed计算</div>
+				<!-- <div>
+					<span class="input-span">firstName: </span><input type="text" v-model="firstName"><br>
+					<span class="input-span">lastName: </span><input type="text" v-model="lastName">
+				</div> -->
+				<div>fullName: {{fullName}}</div>
+				<div>{{helloName}}</div>
 			</li>
 		</ul>
 	</div>
@@ -128,24 +141,34 @@
 				'http://www.w3school.com.cn/ui2017/compatible_opera.png',
 			]
 			return {
-				inputVal_1: 'test',
-				inputVal_2: '',
-				curVal: 'show',
-				person: {
-					name: 'lee',
-					age: 18,
-				},
-				active: true,
-				errorClass: 'text-danger',
-				classType: 0,
-				hrefVal: '',
-				titleVal: '',
-				curImgIndex: 0,
-				imgPreList,
-				repeatData: [
-					1,2,3
-				]
+				// inputVal_1: 'test',
+				// inputVal_2: '',
+				// curVal: 'show',
+				// person: {
+				// 	name: 'lee',
+				// 	age: 18,
+				// },
+				// active: true,
+				// errorClass: 'text-danger',
+				// classType: 0,
+				// hrefVal: '',
+				// titleVal: '',
+				// curImgIndex: 0,
+				// imgPreList,
+				// repeatData: [
+				// 	1,2,3
+				// ],
+				firstName: 'Lebron',
+				lastName: 'James',
 			}
+		},
+		computed: {
+			fullName() {
+				return `${this.firstName}&&${this.lastName}`
+			},
+			helloName() {
+				return `hello ${this.fullName}`
+			},
 		},
 		methods: {
 			clickEventTest(val) {

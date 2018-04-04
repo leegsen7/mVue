@@ -246,7 +246,7 @@ var compileUtil = {
     },
     // v-for指令处理
     dirForHandler(node,val) {
-        console.log(node,val)
+        // console.log(node,val)
         for (let i in val) {
             if (val.hasOwnProperty(i)) {
                 insertAfter(node,node)
