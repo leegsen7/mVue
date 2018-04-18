@@ -170,6 +170,11 @@
 				return `hello ${this.fullName}`
 			},
 		},
+		created() {
+			console.log('created---')
+			console.log(document.getElementsByClassName('li-title'))
+			this.lastName = 'James haha'
+		},
 		methods: {
 			clickEventTest(val) {
 				alert(val || '请输入')
@@ -187,7 +192,11 @@
 				this.curImgIndex += num
 				this.curImgIndex = this.curImgIndex < 0 ? len -1 : this.curImgIndex > len -1 ? 0 : this.curImgIndex
 			},
-		}
+		},
+		mounted() {
+			console.log('mounted---')
+			console.log(document.getElementsByClassName('li-title'))
+		},
 	})
 	</script>
 </body>

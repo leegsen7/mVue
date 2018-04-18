@@ -605,7 +605,13 @@ function Vue(options){
     new _Observer__WEBPACK_IMPORTED_MODULE_0__["default"](this.$data);
     this.$proxy()
     this.initComputed()
+    if (typeof options.created === 'function') {
+        options.created.call(this)
+    }
 	new _Compile__WEBPACK_IMPORTED_MODULE_1__["default"](this.$options.el || document.body,this);
+    if (typeof options.mounted === 'function') {
+        options.mounted.call(this)
+    }
 }
 // 把data,method代理到当前实例上去
 Vue.prototype.$proxy = function() {

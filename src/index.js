@@ -10,7 +10,13 @@ function Vue(options){
     new Observer(this.$data);
     this.$proxy()
     this.initComputed()
+    if (typeof options.created === 'function') {
+        options.created.call(this)
+    }
 	new Compile(this.$options.el || document.body,this);
+    if (typeof options.mounted === 'function') {
+        options.mounted.call(this)
+    }
 }
 // 把data,method代理到当前实例上去
 Vue.prototype.$proxy = function() {
